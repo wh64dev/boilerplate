@@ -2,17 +2,12 @@ package database
 
 import (
 	"database/sql"
-	"embed"
 	"fmt"
-	"io/fs"
 	"strings"
 
 	"git.wh64.net/devproje/devproje-boilerplate/src/config"
 	_ "github.com/lib/pq"
 )
-
-//go:embed migrations/*.sql
-var migrations embed.FS
 
 type Database struct {
 	DB *sql.DB
@@ -32,57 +27,6 @@ func nonrequired(key, value string) string {
 	}
 
 	return fmt.Sprintf("%s=%s", key, value)
-}
-
-func Migration(db *sql.DB) error {
-	var applied []string = make([]string, 0)
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS migrations (
-		version		VARCHAR(36),
-		applied_at	TIMESTAMPTZ	DEFAULT NOW()
-	);`)
-	if err != nil {
-		return fmt.Errorf("error occurred when creating migration table: %v", err)
-	}
-
-	rows, err := db.Query("SELECT version FROM migrations;")
-	if err != nil {
-		return fmt.Errorf("failed to load applied migrations: %s", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var version string
-		if err := rows.Scan(&version); err != nil {
-			return fmt.Errorf("failed to scan migration version: %v", err)
-		}
-
-		applied = append(applied, version)
-	}
-
-	if rows.Err(); err != nil {
-		return fmt.Errorf("error during rows iteration: %v", err)
-	}
-
-	var entries []fs.DirEntry
-	entries, err = fs.ReadDir(migrations, "migrations")
-	if err != nil {
-		return err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-
-		if !strings.HasSuffix(entry.Name(), ".sql") {
-			continue
-		}
-
-		// var version, _ = strings.CutSuffix(entry.Name(), ".sql")
-
-	}
-
-	return nil
 }
 
 func (db *Database) Name() string {
@@ -105,6 +49,11 @@ func (db *Database) Init() error {
 	defer d.Close()
 
 	err = d.Ping()
+	if err != nil {
+		return err
+	}
+
+	err = db.migrate(d)
 	if err != nil {
 		return err
 	}
