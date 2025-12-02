@@ -55,7 +55,7 @@ func init() {
 	var dbPort = loadInt("DB_PORT", 5432)
 	var dbName = load("DB_NAME", "boilerplate")
 	var dbUsername = load("DB_USERNAME", "")
-	var dbPassword = load("DB_PASWORD", "")
+	var dbPassword = load("DB_PASSWORD", "")
 
 	Get = &ConfigRaw{
 		Host: host,

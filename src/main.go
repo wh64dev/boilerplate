@@ -12,6 +12,7 @@ import (
 
 	"git.wh64.net/devproje/devproje-boilerplate/src/config"
 	"git.wh64.net/devproje/devproje-boilerplate/src/modules"
+	"git.wh64.net/devproje/devproje-boilerplate/src/modules/database"
 	"git.wh64.net/devproje/devproje-boilerplate/src/modules/sample"
 	"github.com/devproje/commando"
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,7 @@ func main() {
 	cnf := config.Get
 	app := gin.Default()
 
+	modules.LOADER.Insmod(database.DatabaseModule)
 	modules.LOADER.Insmod(sample.SampleServiceModule)
 	modules.LOADER.Load()
 

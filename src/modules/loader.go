@@ -25,11 +25,12 @@ func (sl *ModuleLoader) Load() {
 	for _, m := range sl.modules {
 		err = m.Init()
 		if err != nil {
-			log.Printf("Failed to load module: %s", m.Name())
+			log.Printf("[%s] Failed to load module", m.Name())
+			log.Printf("[%s] %v", m.Name(), err)
 			continue
 		}
 
-		log.Printf("Loaded module: %s", m.Name())
+		log.Printf("[%s] Loaded module", m.Name())
 	}
 }
 
@@ -40,11 +41,11 @@ func (sl *ModuleLoader) Unload() {
 	for _, m := range sl.modules {
 		err = m.Destroy()
 		if err != nil {
-			log.Printf("Failed to unload module: %s", m.Name())
+			log.Printf("[%s] Failed to unload module", m.Name())
 			continue
 		}
 
-		log.Printf("Unloaded module: %s", m.Name())
+		log.Printf("[%s] Unloaded module", m.Name())
 	}
 }
 
