@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "Initializing frontend project..."
+cd frontend/
+bun install
+cd ../
+
+echo "Initializing core backend service..."
+go mod tidy
