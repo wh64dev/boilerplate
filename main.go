@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -21,7 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed public
+//go:embed public/*
 var static embed.FS
 
 func cli(args []string) bool {
@@ -33,6 +34,21 @@ func cli(args []string) bool {
 	}
 
 	return true
+}
+
+func mime(path string) string {
+	switch {
+	case strings.HasSuffix(path, ".ico"):
+		return "image/x-icon"
+	case strings.HasSuffix(path, ".txt"):
+		return "text/plain"
+	case strings.HasSuffix(path, ".svg"):
+		return "image/svg+xml"
+	case strings.HasSuffix(path, ".json"):
+		return "application/json"
+	default:
+		return "application/octet-stream"
+	}
 }
 
 func main() {
@@ -53,14 +69,24 @@ func main() {
 
 	routes.API(app)
 
-	var staticFS, _ = fs.Sub(static, "public")
+	var public, _ = fs.Sub(static, "public")
+	var assets, _ = fs.Sub(public, "assets")
+	var index, _ = fs.ReadFile(public, "index.html")
 
-	app.GET("/", func(ctx *gin.Context) {
-		ctx.FileFromFS("index.html", http.FS(staticFS))
+	app.StaticFS("/assets", http.FS(assets))
+	app.GET("/", func (ctx *gin.Context) {
+		ctx.Data(200, "text/html; charset=utf-8", index)
 	})
 
-	app.NoRoute(func(ctx *gin.Context) {
-		ctx.FileFromFS("index.html", http.FS(staticFS))
+	app.NoRoute(func (ctx *gin.Context) {
+		path := ctx.Request.URL.Path[1:]
+
+		if data, err := fs.ReadFile(public, path); err == nil {
+			ctx.Data(200, mime(path), data)
+			return
+		}
+
+		ctx.Data(200, "text/html; charset=utf-8", index)
 	})
 
 	var webserver = &http.Server{

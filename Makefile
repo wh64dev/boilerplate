@@ -25,6 +25,7 @@ BUILD_FLAGS := -ldflags "$(LDFLAGS)"
 all: build-frontend build
 
 build-frontend: $(FRONTEND_DIR)
+	@rm -rf public/
 	@make -C $(FRONTEND_DIR)
 
 build: $(SRCS)
