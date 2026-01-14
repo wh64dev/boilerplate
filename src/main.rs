@@ -23,12 +23,13 @@ async fn main() {
         }
     };
     
-    let app = Router::new()
-        .fallback(get(spa_handler))
-        .layer(layer_fn(logger));
     let config = Config::new();
     println!("Starting {} v{}-{} ({})", config.info.name, config.info.version, config.info.branch, config.info.hash);
     println!("Service build at: {}", config.info.build_time);
+
+    let app = Router::new()
+        .fallback(get(spa_handler))
+        .layer(layer_fn(logger));
 
     let server = TcpListener::bind(format!("{}:{}", config.host, config.port))
         .await
